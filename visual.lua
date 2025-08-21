@@ -1,6 +1,5 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
@@ -182,37 +181,34 @@ local hat = nil
 local trails = {}
 local fovValue = 70
 
-CreateToggle("Китайская шляпа", 0, function(enabled)
+CreateToggle("Азиатская шляпа", 0, function(enabled)
     if enabled then
         hat = Instance.new("Part")
-        hat.Name = "ChineseHat"
-        hat.Size = Vector3.new(3, 0.5, 3)
+        hat.Name = "AsianHat"
+        hat.Size = Vector3.new(4, 0.2, 4)
         hat.Shape = Enum.PartType.Cylinder
-        hat.BrickColor = BrickColor.new("Bright red")
-        hat.Material = Enum.Material.Neon
+        hat.BrickColor = BrickColor.new("Bright blue")
+        hat.Material = Enum.Material.SmoothPlastic
         
-        local hatTop = Instance.new("Part")
-        hatTop.Name = "HatTop"
-        hatTop.Size = Vector3.new(1, 1, 1)
-        hatTop.BrickColor = BrickColor.new("Bright yellow")
-        hatTop.Material = Enum.Material.Neon
-        hatTop.Position = Vector3.new(0, 1.5, 0)
+        local hatCone = Instance.new("Part")
+        hatCone.Name = "HatCone"
+        hatCone.Size = Vector3.new(0.5, 2, 0.5)
+        hatCone.Shape = Enum.PartType.Cylinder
+        hatCone.BrickColor = BrickColor.new("Bright blue")
+        hatCone.Material = Enum.Material.SmoothPlastic
         
         local weld = Instance.new("Weld")
         weld.Part0 = hat
-        weld.Part1 = hatTop
-        weld.C0 = CFrame.new(0, 0.75, 0)
+        weld.Part1 = hatCone
+        weld.C0 = CFrame.new(0, 1.1, 0) * CFrame.Angles(0, 0, math.rad(90))
         weld.Parent = hat
         
-        local handle = Instance.new("Humanoid")
-        handle.Parent = hat
-        
         hat.Parent = workspace
-        hatTop.Parent = workspace
+        hatCone.Parent = workspace
         
         RunService.RenderStepped:Connect(function()
             if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Head") then
-                hat.CFrame = LocalPlayer.Character.Head.CFrame * CFrame.new(0, 1.5, 0)
+                hat.CFrame = LocalPlayer.Character.Head.CFrame * CFrame.new(0, 1.8, 0)
             end
         end)
     else
@@ -223,19 +219,34 @@ CreateToggle("Китайская шляпа", 0, function(enabled)
     end
 end)
 
-CreateToggle("Трейсы", 40, function(enabled)
+CreateToggle("Радужные трейсы", 40, function(enabled)
     if enabled then
         if LocalPlayer.Character then
-            for _, part in pairs(LocalPlayer.Character:GetChildren()) do
-                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+            local bodyParts = {
+                "LeftHand", "RightHand", "LeftFoot", "RightFoot", "Torso"
+            }
+            
+            local rainbowColors = {
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+                ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 165, 0)),
+                ColorSequenceKeypoint.new(0.4, Color3.fromRGB(255, 255, 0)),
+                ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 255, 0)),
+                ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 0, 255)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(128, 0, 128))
+            }
+            
+            for _, partName in pairs(bodyParts) do
+                local part = LocalPlayer.Character:FindFirstChild(partName)
+                if part then
                     local trail = Instance.new("Trail")
                     trail.Attachment0 = Instance.new("Attachment")
                     trail.Attachment0.Parent = part
                     trail.Attachment1 = Instance.new("Attachment")
-                    trail.Attachment1.Position = Vector3.new(0, 1, 0)
+                    trail.Attachment1.Position = Vector3.new(0, 0.5, 0)
                     trail.Attachment1.Parent = part
-                    trail.Color = ColorSequence.new(Color3.fromRGB(255, 50, 50))
-                    trail.Lifetime = 0.5
+                    trail.Color = ColorSequence.new(rainbowColors)
+                    trail.Lifetime = 0.8
+                    trail.Transparency = NumberSequence.new(0.5)
                     trail.Parent = part
                     trails[part] = trail
                 end
@@ -243,9 +254,11 @@ CreateToggle("Трейсы", 40, function(enabled)
         end
     else
         for part, trail in pairs(trails) do
-            trail:Destroy()
-            if trail.Attachment0 then trail.Attachment0:Destroy() end
-            if trail.Attachment1 then trail.Attachment1:Destroy() end
+            if trail then
+                trail:Destroy()
+                if trail.Attachment0 then trail.Attachment0:Destroy() end
+                if trail.Attachment1 then trail.Attachment1:Destroy() end
+            end
         end
         trails = {}
     end
